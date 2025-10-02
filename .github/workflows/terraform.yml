@@ -44,7 +44,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         # Passa a senha do banco como uma variável de linha de comando, lendo do secret
-        run: terraform plan -no-color -input=false -var="db_password=${{ secrets.DB_PASSWORD }}"
+        run: terraform plan -no-color -input=false
         continue-on-error: true # Permite que o workflow continue para postar o resultado mesmo se o plan falhar
 
       # Opcional, mas muito recomendado: Comenta o resultado do 'plan' no PR
@@ -99,4 +99,4 @@ jobs:
 
       - name: Terraform Apply
         # O -auto-approve é seguro aqui, pois o 'plan' já foi validado no PR
-        run: terraform apply -auto-approve -input=false -var="db_password=${{ secrets.DB_PASSWORD }}"
+        run: terraform apply -auto-approve -input=false
