@@ -1,8 +1,8 @@
 terraform {
-  cloud {
-    organization = "spoo-terraform"
-    workspaces {
-      name = "terraform"
-    }
+  backend "s3" {
+
+    bucket = "spoo-aula-backend"
+    key    = "camil/aula8/terraform.tfstate"
+    region = "us-east-2"
   }
 }
