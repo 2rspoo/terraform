@@ -1,0 +1,102 @@
+name: 'Terraform CI/CD'
+
+# Gatilhos do workflow
+on:
+  # Aciona em pushes para a branch 'main' (após um merge de PR)
+  push:
+    branches:
+      - main
+  # Aciona também na criação ou atualização de Pull Requests
+  pull_request:
+
+permissions:
+  id-token: write   # Necessário para autenticação OIDC com a AWS
+  contents: read    # Para fazer o checkout do código
+  pull-requests: write # Para poder comentar o 'plan' no PR
+
+jobs:
+  # Este job roda para Pull Requests
+  terraform-plan:
+    name: 'Terraform Plan'
+    # Condição: Só executa este job se o evento for um 'pull_request'
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        # Passa a senha do banco como uma variável de linha de comando, lendo do secret
+        run: terraform plan -no-color -input=false -var="db_password=${{ secrets.DB_PASSWORD }}"
+        continue-on-error: true # Permite que o workflow continue para postar o resultado mesmo se o plan falhar
+
+      # Opcional, mas muito recomendado: Comenta o resultado do 'plan' no PR
+      - name: Update PR with Plan
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Validation Output</summary>
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+            </details>
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+            </details>
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+  # Este job roda APÓS o merge na 'main'
+  terraform-apply:
+    name: 'Terraform Apply'
+    # Condição: Só executa se o evento for um 'push' para a branch 'main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        # O -auto-approve é seguro aqui, pois o 'plan' já foi validado no PR
+        run: terraform apply -auto-approve -input=false -var="db_password=${{ secrets.DB_PASSWORD }}"
