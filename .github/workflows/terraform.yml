@@ -110,3 +110,28 @@ jobs:
         # O -auto-approve é seguro aqui, pois o 'plan' já foi validado no PR
         run: terraform apply -auto-approve -input=false
 
+
+  terraform-destroy:
+    name: 'Terraform Destroy'
+    # Condição: Só executa se o evento for 'workflow_dispatch' e a opção 'destroy' for marcada
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.destroy == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -input=false
