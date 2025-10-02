@@ -1,5 +1,5 @@
 variable "bucket_name_backend" {
-  default = "spoo-aula8-backend"
+  default = "spoo-backend"
 }
 
 variable "region_default" {
