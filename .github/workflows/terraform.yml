@@ -9,6 +9,15 @@ on:
   # Aciona também na criação ou atualização de Pull Requests
   pull_request:
 
+  workflow_dispatch:
+    inputs:
+      destroy:
+        description: 'Marque para destruir a infraestrutura. CUIDADO!'
+        required: true
+        type: boolean
+        default: false
+
+
 permissions:
   id-token: write   # Necessário para autenticação OIDC com a AWS
   contents: read    # Para fazer o checkout do código
@@ -100,3 +109,4 @@ jobs:
       - name: Terraform Apply
         # O -auto-approve é seguro aqui, pois o 'plan' já foi validado no PR
         run: terraform apply -auto-approve -input=false
+
