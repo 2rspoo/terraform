@@ -1,11 +1,11 @@
-terraform {
-  backend "s3" {
-
-    bucket = "spoo-ent3-backend"
-    key    = "camil/aula8/terraform.tfstate"
-    region = "us-east-2"
-  }
-}
+#terraform {
+#  backend "s3" {
+#
+#    bucket = "spoo-aula-backend"
+#    key    = "camil/aula8/terraform.tfstate"
+##    region = "us-east-2"
+#  }
+#}
 
 #terraform {
 #  cloud {
