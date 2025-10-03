@@ -1,5 +1,5 @@
 variable "bucket_name_backend" {
-  default = "spoo-backend"
+  default = "spoo-ent3-backend"
 }
 
 variable "region_default" {
