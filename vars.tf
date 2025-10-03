@@ -41,3 +41,8 @@ variable "tags" {
     Name = "fiap-terraform-aula"
   }
 }
+
+variable "principal_user_arn" {
+  type = string
+  default = "arn:aws:iam::579375260812:user/camila"
+}
