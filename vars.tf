@@ -9,7 +9,7 @@ variable "region_default" {
 variable "tags_dev" {
   type = map(any)
   default = {
-    Name        = "aula3"
+    Name        = "aula2"
     Environment = "Develop"
   }
 }
