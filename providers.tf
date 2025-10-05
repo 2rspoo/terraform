@@ -15,19 +15,7 @@ provider "aws" {
   region = var.region_default
 }
 
-data "aws_eks_cluster" "cluster" {
-  name = aws_eks_cluster.cluster.id
-  depends_on = [
-    aws_eks_cluster.cluster
-  ]
-}
 
-data "aws_eks_cluster_auth" "auth" {
-  name = aws_eks_cluster.cluster.id
-  depends_on = [
-    aws_eks_cluster.cluster
-  ]
-}
 
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
