@@ -3,7 +3,7 @@ resource "aws_s3_bucket" "spoobucket-aula" {
   region = "us-east-2"
   tags = var.tags_prod
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
     ignore_changes  = [bucket]
 }
   }
