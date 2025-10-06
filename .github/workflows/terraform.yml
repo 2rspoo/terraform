@@ -9,6 +9,7 @@ on:
   # Aciona também na criação ou atualização de Pull Requests
   pull_request:
 
+  # Permite acionamento manual para o destroy
   workflow_dispatch:
     inputs:
       destroy:
@@ -17,20 +18,17 @@ on:
         type: boolean
         default: false
 
-
 permissions:
   id-token: write   # Necessário para autenticação OIDC com a AWS
   contents: read    # Para fazer o checkout do código
   pull-requests: write # Para poder comentar o 'plan' no PR
 
 jobs:
-  # Este job roda para Pull Requests
+  # Este job roda para Pull Requests e não precisa de alterações
   terraform-plan:
     name: 'Terraform Plan'
-    # Condição: Só executa este job se o evento for um 'pull_request'
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -45,35 +43,38 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init
+        id: init
         run: terraform init
 
       - name: Terraform Validate
+        id: validate
         run: terraform validate -no-color
 
       - name: Terraform Plan
         id: plan
-        # Passa a senha do banco como uma variável de linha de comando, lendo do secret
         run: terraform plan -no-color -input=false
-        continue-on-error: true # Permite que o workflow continue para postar o resultado mesmo se o plan falhar
+        continue-on-error: true
 
-      # Opcional, mas muito recomendado: Comenta o resultado do 'plan' no PR
       - name: Update PR with Plan
         uses: actions/github-script@v6
         with:
           script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             <details><summary>Validation Output</summary>
-            \`\`\`\n
+
+            \`\`\`
             ${{ steps.validate.outputs.stdout }}
             \`\`\`
+
             </details>
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
             <details><summary>Show Plan</summary>
-            \`\`\`\n
+
+            \`\`\`
             ${{ steps.plan.outputs.stdout }}
             \`\`\`
+
             </details>
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
             github.rest.issues.createComment({
@@ -86,10 +87,8 @@ jobs:
   # Este job roda APÓS o merge na 'main'
   terraform-apply:
     name: 'Terraform Apply'
-    # Condição: Só executa se o evento for um 'push' para a branch 'main'
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -106,17 +105,26 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Apply
-        # O -auto-approve é seguro aqui, pois o 'plan' já foi validado no PR
+      # --- MUDANÇA APLICADA AQUI ---
+      - name: 'Terraform Apply: Etapa 1 - Criar Infraestrutura AWS'
+        run: |
+          terraform apply -auto-approve -input=false \
+            -target=aws_eks_cluster.cluster \
+            -target=aws_eks_node_group.node \
+            -target=aws_eks_access_entry.infra_actions_access \
+            -target=aws_eks_access_policy_association.infra_actions_admin_policy \
+            -target=aws_eks_access_entry.app_deploy_actions_access \
+            -target=aws_eks_access_policy_association.app_deploy_actions_admin_policy
+            # Adicione outros recursos AWS (VPC, Roles, etc.) aqui se necessário
+
+      - name: 'Terraform Apply: Etapa 2 - Aplicar Recursos Kubernetes'
         run: terraform apply -auto-approve -input=false
 
-
+  # Este job roda manualmente para o destroy
   terraform-destroy:
     name: 'Terraform Destroy'
-    # Condição: Só executa se o evento for 'workflow_dispatch' e a opção 'destroy' for marcada
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.destroy == 'true'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -133,5 +141,14 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Destroy
+      # --- MUDANÇA APLICADA AQUI ---
+      - name: 'Terraform Destroy: Etapa 1 - Destruir Recursos Kubernetes'
+        run: |
+          terraform destroy -auto-approve -input=false \
+            -target=kubectl_manifest.namespace \
+            -target=kubectl_manifest.deploy \
+            -target=kubectl_manifest.service
+            # Adicione outros recursos kubectl_manifest aqui se tiver
+
+      - name: 'Terraform Destroy: Etapa 2 - Destruir Infraestrutura AWS'
         run: terraform destroy -auto-approve -input=false
