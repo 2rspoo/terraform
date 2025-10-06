@@ -3,7 +3,7 @@ variable "bucket_name_backend" {
 }
 
 variable "region_default" {
-  default = "us-east-2"
+  default = "us-east-1"
 }
 
 variable "tags_dev" {

@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "spoobucket-aula" {
   bucket = var.bucket_name_backend
-  region = "us-east-2"
+  region = "us-east-1"
   tags = var.tags_prod
   force_destroy = true
   lifecycle {
