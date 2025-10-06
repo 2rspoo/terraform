@@ -7,7 +7,7 @@ resource "aws_eks_access_entry" "github_actions_access" {
   type          = "STANDARD"
 }
 
-# 2. Associa a política de "Administrador do Cluster" a essa entrada de acesso
+# 2. Associa a política de "Administrador do Cluster" a essa entrada de acessos
 resource "aws_eks_access_policy_association" "github_actions_admin_policy" {
   cluster_name  = aws_eks_cluster.cluster.name
   principal_arn = "arn:aws:iam::579375260812:role/GitHubActionRole-DatabaseInfra" # <-- Aspas adicionadas
