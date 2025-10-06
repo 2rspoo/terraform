@@ -11,6 +11,7 @@ resource "kubectl_manifest" "aws_auth" {
 
   # Garante que a criação do node group termine antes de aplicar este manifesto
   depends_on = [
-    aws_eks_node_group.node
+    aws_eks_node_group.node,
+    aws_eks_access_policy_association.infra_actions_admin_policy
   ]
 }
