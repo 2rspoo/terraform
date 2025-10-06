@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
 
-    bucket = "spoo-ent3-backend"
+    bucket = "spoo-ent4-backend"
     key    = "camil/aula8/terraform.tfstate"
     region = "us-east-2"
   }
