@@ -1,5 +1,5 @@
 variable "bucket_name_backend" {
-  default = "spoo-ent6-backend"
+  default = "spoo-ent7-backend"
 }
 
 variable "region_default" {
