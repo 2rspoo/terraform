@@ -1,5 +1,8 @@
 resource "kubectl_manifest" "deploy" {
-  depends_on = [kubectl_manifest.namespace]
+  depends_on = [
+    kubectl_manifest.namespace,
+    aws_eks_access_policy_association.infra_actions_admin_policy
+  ]
   yaml_body = <<YAML
 apiVersion: apps/v1
 kind: Deployment
