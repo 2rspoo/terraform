@@ -7,15 +7,15 @@ resource "kubectl_manifest" "service" {
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: minha-app-service
   namespace: nginx
 spec:
   selector:
-      app: nginx
+      app: minha-app
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 8080
   type: LoadBalancer
 YAML
 }
