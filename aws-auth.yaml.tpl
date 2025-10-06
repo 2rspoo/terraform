@@ -21,3 +21,8 @@ data:
       username: github-actions
       groups:
         - system:masters
+
+    - rolearn: arn:aws:iam::579375260812:role/GitHubAction-AppDeploy-Role
+      username: github-actions-deployer
+      groups:
+        - system:masters # Dê permissão de admin para deploy.
