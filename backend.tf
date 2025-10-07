@@ -7,11 +7,3 @@ terraform {
   }
 }
 
-#terraform {
-#  cloud {
-#    organization = "spoo-aula9-terraform"
-#    workspaces {
-#      name = "terraform-soat"
-#    }
-#  }
-#}
