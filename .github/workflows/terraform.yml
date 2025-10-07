@@ -141,7 +141,7 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      # --- MUDANÇA  APLICADA AQUI ---
+      # --- MUDANÇA   APLICADA AQUI ---
       - name: 'Terraform Destroy: Etapa 1 - Destruir Recursos Kubernetes'
         run: |
           terraform destroy -auto-approve -input=false \
