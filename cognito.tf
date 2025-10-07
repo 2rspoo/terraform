@@ -1,12 +1,8 @@
 # --- 1. AWS Cognito User Pool ---
+# --- 1. AWS Cognito User Pool ---
 resource "aws_cognito_user_pool" "main" {
   name = "SistemaPedidosUserPool"
 
-  # **MUDANÇA CRÍTICA:** Remove 'email' de alias_attributes.
-  # Nenhuma configuração de alias é necessária, pois a autenticação é customizada pelo CPF.
-  # alias_attributes = ["email"] # LINHA REMOVIDA
-
-  # Políticas de senha: Manter o mínimo é bom, pois não será usada.
   password_policy {
     minimum_length    = 8
     require_lowercase = false
@@ -15,29 +11,36 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = false
   }
 
-  # **MUDANÇA CRÍTICA:** Remove 'email' de auto_verified_attributes.
-  # Nenhum atributo será auto-verificado, pois a verificação será via Lambda Custom Auth.
-  # auto_verified_attributes = ["email"] # LINHA REMOVIDA
+  # --- CORREÇÃO APLICADA AQUI ---
+  # Adicionamos os schemas para os atributos padrão, mas não os tornamos obrigatórios.
+  schema {
+    name                = "email"
+    attribute_data_type = "String"
+    mutable             = true
+    required            = false # <-- Importante!
+  }
 
-  # Schema (Atributos): Definindo APENAS o CPF.
+  schema {
+    name                = "name"
+    attribute_data_type = "String"
+    mutable             = true
+    required            = false # <-- Importante!
+  }
+
+  # (Pode adicionar family_name, given_name da mesma forma se precisar)
+
+  # Seu schema customizado continua aqui
   schema {
     name                     = "custom:cpf"
     attribute_data_type      = "String"
     mutable                  = true
     developer_only_attribute = false
 
-    # O CPF é o identificador central, e você pode torná-lo obrigatório
-    # *APÓS* a criação inicial (conforme a limitação da AWS).
-    # Por enquanto, mantemos limpo, mas ele é usado como login customizado.
-    # required                 = true # Mantenha removido para evitar o erro 400 da AWS na criação
-
     string_attribute_constraints {
       min_length = 11
       max_length = 14
     }
   }
-
-
 }
 
 # --- 2. AWS Cognito User Pool Client (O App Client) ---
