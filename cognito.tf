@@ -42,6 +42,7 @@ resource "aws_cognito_user_pool" "main" {
 
 # --- 2. AWS Cognito User Pool Client (O App Client) ---
 # --- 2. AWS Cognito User Pool Client (O App Client) ---
+# --- 2. AWS Cognito User Pool Client (O App Client) ---
 resource "aws_cognito_user_pool_client" "main" {
   name                          = "SistemaPedidosAppClient"
   user_pool_id                  = aws_cognito_user_pool.main.id
@@ -50,13 +51,18 @@ resource "aws_cognito_user_pool_client" "main" {
   explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"]
   prevent_user_existence_errors = "ENABLED"
 
-  # CORREÇÃO ESSENCIAL: O Cognito exige que atributos padrão sejam incluídos.
-  # Adicione 'email' e outros atributos padrões que seu User Pool possui/pode usar.
+  # --- CORREÇÃO APLICADA AQUI ---
+  # Permite a leitura de atributos padrão, mesmo que não sejam usados ativamente.
   read_attributes  = [
-    "sub", # O ID único do usuário (sempre presente e útil)
-    "custom:cpf"
-
+    "sub",
+    "custom:cpf",
+    "email",
+    "name",
+    "family_name",
+    "given_name"
   ]
+
+  # A permissão de escrita pode ser restrita apenas ao que você realmente vai alterar.
   write_attributes = [
     "custom:cpf"
   ]
