@@ -10,43 +10,20 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = false
   }
 
-  # --- CORREÇÃO FINAL APLICADA AQUI ---
-  # Adicionamos TODOS os schemas para os atributos padrão que o client precisa ler.
-  # Todos são marcados como não obrigatórios.
+  # Schema Mínimo: Apenas o essencial
   schema {
     name                = "email"
     attribute_data_type = "String"
     mutable             = true
-    required            = false
+    required            = false # Não é obrigatório
   }
 
-  schema {
-    name                = "name"
-    attribute_data_type = "String"
-    mutable             = true
-    required            = false
-  }
-
-  schema {
-    name                = "family_name"
-    attribute_data_type = "String"
-    mutable             = true
-    required            = false
-  }
-
-  schema {
-    name                = "given_name"
-    attribute_data_type = "String"
-    mutable             = true
-    required            = false
-  }
-
-  # Seu schema customizado
   schema {
     name                     = "custom:cpf"
     attribute_data_type      = "String"
     mutable                  = true
     developer_only_attribute = false
+    required                 = false # Não é obrigatório na criação do pool
 
     string_attribute_constraints {
       min_length = 11
@@ -64,17 +41,13 @@ resource "aws_cognito_user_pool_client" "main" {
   explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"]
   prevent_user_existence_errors = "ENABLED"
 
-  # Esta lista agora corresponde 100% ao que foi declarado no schema do User Pool
+  # Sincronia Perfeita: Peça permissão apenas para o que foi definido no schema
   read_attributes  = [
-    "sub",
-    "custom:cpf",
     "email",
-    "name",
-    "family_name",
-    "given_name"
+    "custom:cpf"
   ]
-
   write_attributes = [
+    "email",
     "custom:cpf"
   ]
 
@@ -87,11 +60,11 @@ resource "aws_cognito_user_pool_client" "main" {
   }
 }
 
-# --- 3. (Opcional) Outputs ---
+# --- 3. Outputs ---
 output "user_pool_id" {
   value = aws_cognito_user_pool.main.id
 }
 
 output "client_id" {
-  value = aws_cognito_user_pool.main.id
+  value = aws_cognito_user_pool_client.main.id
 }
