@@ -26,7 +26,6 @@ resource "aws_cognito_user_pool" "main" {
     name                     = "cpf"
     attribute_data_type      = "String"
     mutable                  = true # Permite que o atributo seja modificado após a criação do usuário
-    required                 = true
     developer_only_attribute = false # Torna visível para todas as APIs
 
     # Restrições de tamanho
@@ -46,6 +45,10 @@ resource "aws_cognito_user_pool_client" "main" {
 
   # Desativa o envio de credenciais de login para endpoints que não são usados
   prevent_user_existence_errors = "ENABLED"
+
+  required_claims = [
+    "cpf"
+  ]
 
   # Tempo de vida dos tokens (ajuste conforme a necessidade de segurança/experiência do usuário)
   id_token_validity     = 60 # Minutos
