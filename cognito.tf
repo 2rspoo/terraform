@@ -2,14 +2,11 @@
 resource "aws_cognito_user_pool" "main" {
   name = "SistemaPedidosUserPool"
 
-  # Configurações de login: Usar CPF como atributo customizado.
-  # Note: Não estamos usando email/username padrão para login, o fluxo é
-  # gerenciado totalmente pela Lambda via CPF.
-  alias_attributes = ["email"] # Opcional: manter o email como alias de login
+  # **MUDANÇA CRÍTICA:** Remove 'email' de alias_attributes.
+  # Nenhuma configuração de alias é necessária, pois a autenticação é customizada pelo CPF.
+  # alias_attributes = ["email"] # LINHA REMOVIDA
 
-  # Define as políticas de senha. Como o fluxo é 'passwordless',
-  # essas políticas não são tão críticas, mas precisam ser configuradas.
-  # Exemplo: Sem exigência de senha forte/mínima (você pode ajustar).
+  # Políticas de senha: Manter o mínimo é bom, pois não será usada.
   password_policy {
     minimum_length    = 8
     require_lowercase = false
@@ -18,21 +15,34 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = false
   }
 
-  # Desativa o envio de emails de verificação, pois o fluxo de auth é customizado.
-  auto_verified_attributes = ["email"]
+  # **MUDANÇA CRÍTICA:** Remove 'email' de auto_verified_attributes.
+  # Nenhum atributo será auto-verificado, pois a verificação será via Lambda Custom Auth.
+  # auto_verified_attributes = ["email"] # LINHA REMOVIDA
 
-  # Schema (Atributos): Onde definimos o 'cpf' como atributo customizado.
+  # Schema (Atributos): Definindo APENAS o CPF.
   schema {
     name                     = "cpf"
     attribute_data_type      = "String"
-    mutable                  = true # Permite que o atributo seja modificado após a criação do usuário
-    developer_only_attribute = false # Torna visível para todas as APIs
+    mutable                  = true
+    developer_only_attribute = false
 
-    # Restrições de tamanho
+    # O CPF é o identificador central, e você pode torná-lo obrigatório
+    # *APÓS* a criação inicial (conforme a limitação da AWS).
+    # Por enquanto, mantemos limpo, mas ele é usado como login customizado.
+    # required                 = true # Mantenha removido para evitar o erro 400 da AWS na criação
+
     string_attribute_constraints {
       min_length = 11
       max_length = 14
     }
+  }
+
+  # **OPCIONAL:** Desativar a necessidade de verificação de conta (email/telefone)
+  # se o fluxo Lambda for o único responsável por validar o usuário.
+  verification_message_template {
+    default_email_option = "CONFIRM_WITH_CODE"
+    email_message        = "Seu código de verificação é {####}"
+    email_subject        = "Código de Verificação"
   }
 }
 
@@ -40,26 +50,29 @@ resource "aws_cognito_user_pool" "main" {
 resource "aws_cognito_user_pool_client" "main" {
   name                          = "SistemaPedidosAppClient"
   user_pool_id                  = aws_cognito_user_pool.main.id
-  generate_secret               = false # Desnecessário para este fluxo e mais simples
-  explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"] # ESSENCIAL! Permite o fluxo de auth da sua Lambda (admin_initiate_auth)
+  generate_secret               = false
+
+  # ESSENCIAL! Permite o fluxo de autenticação administrado pela sua Lambda
+  explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"]
 
   # Desativa o envio de credenciais de login para endpoints que não são usados
   prevent_user_existence_errors = "ENABLED"
 
-  required_claims = [
-    "cpf"
-  ]
+  # **MUDANÇA CRÍTICA:** O cliente SÓ precisa de acesso ao atributo 'cpf'.
+  # removemos 'email'
+  read_attributes  = ["cpf"]
+  write_attributes = ["cpf"]
 
-  # Tempo de vida dos tokens (ajuste conforme a necessidade de segurança/experiência do usuário)
-  id_token_validity     = 60 # Minutos
-  access_token_validity = 60 # Minutos
+  # Token Settings
+  id_token_validity     = 60
+  access_token_validity = 60
   token_validity_units {
     id_token      = "minutes"
     access_token  = "minutes"
   }
 }
 
-# --- 3. (Opcional) Referências para usar em outros módulos Terraform (Outputs) ---
+# --- 3. (Opcional) Outputs ---
 output "user_pool_id" {
   value = aws_cognito_user_pool.main.id
 }
