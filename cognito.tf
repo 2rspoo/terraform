@@ -60,7 +60,8 @@ resource "aws_cognito_user_pool_client" "main" {
   # Adicione 'email' e outros atributos padrões que seu User Pool possui/pode usar.
   read_attributes  = [
     "email",
-    "custom:cpf"
+    "custom:cpf",
+    "sub" # O ID único do usuário (sempre presente e útil)
   ]
   write_attributes = [
     "email",
