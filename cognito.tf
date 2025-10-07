@@ -47,21 +47,25 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 # --- 2. AWS Cognito User Pool Client (O App Client) ---
+# --- 2. AWS Cognito User Pool Client (O App Client) ---
 resource "aws_cognito_user_pool_client" "main" {
   name                          = "SistemaPedidosAppClient"
   user_pool_id                  = aws_cognito_user_pool.main.id
   generate_secret               = false
 
-  # ESSENCIAL! Permite o fluxo de autenticação administrado pela sua Lambda
   explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"]
-
-  # Desativa o envio de credenciais de login para endpoints que não são usados
   prevent_user_existence_errors = "ENABLED"
 
-  # **MUDANÇA CRÍTICA:** O cliente SÓ precisa de acesso ao atributo 'cpf'.
-  # removemos 'email'
-  read_attributes  = ["custom:cpf"]
-  write_attributes = ["custom:cpf"]
+  # CORREÇÃO ESSENCIAL: O Cognito exige que atributos padrão sejam incluídos.
+  # Adicione 'email' e outros atributos padrões que seu User Pool possui/pode usar.
+  read_attributes  = [
+    "email",
+    "custom:cpf"
+  ]
+  write_attributes = [
+    "email",
+    "custom:cpf"
+  ]
 
   # Token Settings
   id_token_validity     = 60
