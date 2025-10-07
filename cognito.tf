@@ -21,7 +21,7 @@ resource "aws_cognito_user_pool" "main" {
 
   # Schema (Atributos): Definindo APENAS o CPF.
   schema {
-    name                     = "cpf"
+    name                     = "custom:cpf"
     attribute_data_type      = "String"
     mutable                  = true
     developer_only_attribute = false
@@ -60,8 +60,8 @@ resource "aws_cognito_user_pool_client" "main" {
 
   # **MUDANÇA CRÍTICA:** O cliente SÓ precisa de acesso ao atributo 'cpf'.
   # removemos 'email'
-  read_attributes  = ["cpf"]
-  write_attributes = ["cpf"]
+  read_attributes  = ["custom:cpf"]
+  write_attributes = ["custom:cpf"]
 
   # Token Settings
   id_token_validity     = 60
