@@ -37,13 +37,7 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
-  # **OPCIONAL:** Desativar a necessidade de verificação de conta (email/telefone)
-  # se o fluxo Lambda for o único responsável por validar o usuário.
-  verification_message_template {
-    default_email_option = "CONFIRM_WITH_CODE"
-    email_message        = "Seu código de verificação é {####}"
-    email_subject        = "Código de Verificação"
-  }
+
 }
 
 # --- 2. AWS Cognito User Pool Client (O App Client) ---
@@ -59,12 +53,11 @@ resource "aws_cognito_user_pool_client" "main" {
   # CORREÇÃO ESSENCIAL: O Cognito exige que atributos padrão sejam incluídos.
   # Adicione 'email' e outros atributos padrões que seu User Pool possui/pode usar.
   read_attributes  = [
-    "email",
-    "custom:cpf",
-    "sub" # O ID único do usuário (sempre presente e útil)
+    "sub", # O ID único do usuário (sempre presente e útil)
+    "custom:cpf"
+
   ]
   write_attributes = [
-    "email",
     "custom:cpf"
   ]
 
