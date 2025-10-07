@@ -45,7 +45,7 @@ resource "aws_cognito_user_pool_client" "main" {
   explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"] # ESSENCIAL! Permite o fluxo de auth da sua Lambda (admin_initiate_auth)
 
   # Desativa o envio de credenciais de login para endpoints que não são usados
-  prevent_user_existence_errors = "ENABLE"
+  prevent_user_existence_errors = "ENABLED"
 
   # Tempo de vida dos tokens (ajuste conforme a necessidade de segurança/experiência do usuário)
   id_token_validity     = 60 # Minutos
