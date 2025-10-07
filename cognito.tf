@@ -1,4 +1,5 @@
 # --- 1. AWS Cognito User Pool ---
+# ESTE BLOCO CONTINUA O MESMO - definindo os atributos que o pool conhece
 resource "aws_cognito_user_pool" "main" {
   name = "SistemaPedidosUserPool"
 
@@ -10,12 +11,11 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = false
   }
 
-  # Schema Mínimo: Apenas o essencial
   schema {
     name                = "email"
     attribute_data_type = "String"
     mutable             = true
-    required            = false # Não é obrigatório
+    required            = false
   }
 
   schema {
@@ -23,7 +23,6 @@ resource "aws_cognito_user_pool" "main" {
     attribute_data_type      = "String"
     mutable                  = true
     developer_only_attribute = false
-    required                 = false # Não é obrigatório na criação do pool
 
     string_attribute_constraints {
       min_length = 11
@@ -33,6 +32,7 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 # --- 2. AWS Cognito User Pool Client (O App Client) ---
+# ESTE BLOCO FOI RADICALMENTE SIMPLIFICADO
 resource "aws_cognito_user_pool_client" "main" {
   name                          = "SistemaPedidosAppClient"
   user_pool_id                  = aws_cognito_user_pool.main.id
@@ -41,14 +41,14 @@ resource "aws_cognito_user_pool_client" "main" {
   explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"]
   prevent_user_existence_errors = "ENABLED"
 
-  # Sincronia Perfeita: Peça permissão apenas para o que foi definido no schema
+  # --- MUDANÇA RADICAL APLICADA AQUI ---
+  # Removemos completamente a referência ao 'custom:cpf' e pedimos
+  # permissão apenas para os atributos padrão que definimos no schema.
   read_attributes  = [
-    "email",
-    "custom:cpf"
+    "email"
   ]
   write_attributes = [
-    "email",
-    "custom:cpf"
+    "email"
   ]
 
   # Token Settings
