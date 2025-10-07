@@ -4,5 +4,17 @@ resource "aws_subnet" "subnet_public" {
   cidr_block              = cidrsubnet(aws_vpc.vpc_fiap.cidr_block, 4, count.index)
   map_public_ip_on_launch = true
   availability_zone       = ["us-east-1a", "us-east-1b", "us-east-1c"][count.index]
-  tags                    = var.tags
+
+  # --- MUDANÇA APLICADA AQUI ---
+  # A função merge() une o mapa de tags da sua variável com o novo mapa de tags do EKS.
+  tags = merge(
+    var.tags,
+    {
+      # Tag para o EKS reconhecer a subnet (OBRIGATÓRIA)
+      "kubernetes.io/cluster/eks-spoo-ent9-backend" = "shared",
+
+      # Tag para permitir a criação de Load Balancers (BOA PRÁTICA)
+      "kubernetes.io/role/elb"                      = "1"
+    }
+  )
 }
