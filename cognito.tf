@@ -1,5 +1,4 @@
 # --- 1. AWS Cognito User Pool ---
-# --- 1. AWS Cognito User Pool ---
 resource "aws_cognito_user_pool" "main" {
   name = "SistemaPedidosUserPool"
 
@@ -11,25 +10,38 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = false
   }
 
-  # --- CORREÇÃO APLICADA AQUI ---
-  # Adicionamos os schemas para os atributos padrão, mas não os tornamos obrigatórios.
+  # --- CORREÇÃO FINAL APLICADA AQUI ---
+  # Adicionamos TODOS os schemas para os atributos padrão que o client precisa ler.
+  # Todos são marcados como não obrigatórios.
   schema {
     name                = "email"
     attribute_data_type = "String"
     mutable             = true
-    required            = false # <-- Importante!
+    required            = false
   }
 
   schema {
     name                = "name"
     attribute_data_type = "String"
     mutable             = true
-    required            = false # <-- Importante!
+    required            = false
   }
 
-  # (Pode adicionar family_name, given_name da mesma forma se precisar)
+  schema {
+    name                = "family_name"
+    attribute_data_type = "String"
+    mutable             = true
+    required            = false
+  }
 
-  # Seu schema customizado continua aqui
+  schema {
+    name                = "given_name"
+    attribute_data_type = "String"
+    mutable             = true
+    required            = false
+  }
+
+  # Seu schema customizado
   schema {
     name                     = "custom:cpf"
     attribute_data_type      = "String"
@@ -44,8 +56,6 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 # --- 2. AWS Cognito User Pool Client (O App Client) ---
-# --- 2. AWS Cognito User Pool Client (O App Client) ---
-# --- 2. AWS Cognito User Pool Client (O App Client) ---
 resource "aws_cognito_user_pool_client" "main" {
   name                          = "SistemaPedidosAppClient"
   user_pool_id                  = aws_cognito_user_pool.main.id
@@ -54,8 +64,7 @@ resource "aws_cognito_user_pool_client" "main" {
   explicit_auth_flows           = ["ADMIN_NO_SRP_AUTH"]
   prevent_user_existence_errors = "ENABLED"
 
-  # --- CORREÇÃO APLICADA AQUI ---
-  # Permite a leitura de atributos padrão, mesmo que não sejam usados ativamente.
+  # Esta lista agora corresponde 100% ao que foi declarado no schema do User Pool
   read_attributes  = [
     "sub",
     "custom:cpf",
@@ -65,7 +74,6 @@ resource "aws_cognito_user_pool_client" "main" {
     "given_name"
   ]
 
-  # A permissão de escrita pode ser restrita apenas ao que você realmente vai alterar.
   write_attributes = [
     "custom:cpf"
   ]
@@ -85,5 +93,5 @@ output "user_pool_id" {
 }
 
 output "client_id" {
-  value = aws_cognito_user_pool_client.main.id
+  value = aws_cognito_user_pool.main.id
 }
