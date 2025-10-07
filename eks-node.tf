@@ -3,7 +3,7 @@ resource "aws_eks_node_group" "node" {
   node_group_name = "nodeg-${var.bucket_name_backend}"
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = aws_subnet.subnet_public[*].id
-  disk_size       = 50
+  disk_size       = 10
   instance_types  = [var.instance-type]
 
   scaling_config {
