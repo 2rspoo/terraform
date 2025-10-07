@@ -7,12 +7,10 @@ resource "aws_subnet" "subnet_public" {
 
   # --- CORREÇÃO APLICADA AQUI ---
   # A função merge() une o mapa de tags da sua variável com o novo mapa de tags do EKS.
-  tags = merge(
-    var.tags,
-    {
+  tags =     {
       "kubernetes.io/cluster/eks-spoo-ent9-backend" = "shared",
       "kubernetes.io/role/elb"                      = "1"
     }
-  )
+
 }
 
