@@ -105,50 +105,33 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      # --- MUDANÇA APLICADA AQUI ---
-      - name: 'Terraform Apply: Etapa 1 - Criar Infraestrutura AWS'
-        run: |
-          terraform apply -auto-approve -input=false \
-            -target=aws_eks_cluster.cluster \
-            -target=aws_eks_node_group.node \
-            -target=aws_eks_access_entry.infra_actions_access \
-            -target=aws_eks_access_policy_association.infra_actions_admin_policy \
-            -target=aws_eks_access_entry.app_deploy_actions_access \
-            -target=aws_eks_access_policy_association.app_deploy_actions_admin_policy
-            # Adicione outros recursos AWS (VPC, Roles, etc.) aqui se necessário
-
-      - name: 'Terraform Apply: Etapa 2 - Aplicar Recursos Kubernetes'
+      # 🚀 MUDANÇA: Agora é apenas uma etapa de apply para TUDO.
+      - name: 'Terraform Apply: Aplicar Infraestrutura'
         run: terraform apply -auto-approve -input=false
 
-  # Este job roda manualmente para o destroy
-  terraform-destroy:
-    name: 'Terraform Destroy'
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.destroy == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+---
 
-      - name: Configure AWS Credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ secrets.AWS_REGION }}
+# Este job roda manualmente para o destroy
+terraform-destroy:
+  name: 'Terraform Destroy'
+  if: github.event_name == 'workflow_dispatch' && github.event.inputs.destroy == 'true'
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+    - name: Configure AWS Credentials (OIDC)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform init
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
 
-      # --- MUDANÇA   APLICADA AQUI ---
-      - name: 'Terraform Destroy: Etapa 1 - Destruir Recursos Kubernetes'
-        run: |
-          terraform destroy -auto-approve -input=false \
-            -target=kubectl_manifest.namespace \
-            -target=kubectl_manifest.deploy \
-            -target=kubectl_manifest.service
-            # Adicione outros recursos kubectl_manifest aqui se tiver
+    - name: Terraform Init
+      run: terraform init
 
-      - name: 'Terraform Destroy: Etapa 2 - Destruir Infraestrutura AWS'
-        run: terraform destroy -auto-approve -input=false
+    # 💣 MUDANÇA: Agora é apenas uma etapa de destroy para TUDO.
+    - name: 'Terraform Destroy: Destruir Infraestrutura'
+      run: terraform destroy -auto-approve -input=false
