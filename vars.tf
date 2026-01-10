@@ -12,6 +12,7 @@ variable "tags_dev" {
     Name        = "aula2"
     Environment = "Develop"
   }
+
 }
 
 variable "tags_prod" {
